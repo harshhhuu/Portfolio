@@ -58,44 +58,6 @@ export function useGSAPScrollTrigger() {
       onEnterBack: () => applyConfig('work'),
     });
 
-    // Project cards inside Work section to create "weaving" effect
-    const cards = gsap.utils.toArray<HTMLElement>('.project-card');
-    const cardTriggers: ScrollTrigger[] = [];
-
-    cards.forEach((card, index) => {
-      const cardTrigger = ScrollTrigger.create({
-        trigger: card,
-        start: 'top 60%',
-        end: 'bottom 40%',
-        onEnter: () => {
-          // Alternate left and right position per project card
-          const side = index % 2 === 0 ? 1 : -1;
-          setTargetPosition([1.8 * side, 0, -1]);
-          setTargetScale(0.65);
-          const colors = ['#A8C5DA', '#B5C9A8', '#D4A574'];
-          setMaterialTargets({
-            color: colors[index % colors.length],
-            roughness: 0.25,
-            metalness: 0.85,
-            emissiveIntensity: 0.1,
-          });
-        },
-        onEnterBack: () => {
-          const side = index % 2 === 0 ? 1 : -1;
-          setTargetPosition([1.8 * side, 0, -1]);
-          setTargetScale(0.65);
-          const colors = ['#A8C5DA', '#B5C9A8', '#D4A574'];
-          setMaterialTargets({
-            color: colors[index % colors.length],
-            roughness: 0.25,
-            metalness: 0.85,
-            emissiveIntensity: 0.1,
-          });
-        },
-      });
-      cardTriggers.push(cardTrigger);
-    });
-
     // ─── About Section ───
     const aboutTrigger = ScrollTrigger.create({
       trigger: '#about',
@@ -210,7 +172,6 @@ export function useGSAPScrollTrigger() {
       mainTrigger.kill();
       heroTrigger.kill();
       workTrigger.kill();
-      cardTriggers.forEach((t) => t.kill());
       aboutTrigger.kill();
       contactTrigger.kill();
       splitRevealAnimations.forEach((anim) => {

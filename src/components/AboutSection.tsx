@@ -42,7 +42,7 @@ export default function AboutSection() {
   return (
     <section
       id="about"
-      className="min-h-screen w-full py-24 md:py-32 px-6 md:px-12 lg:px-24 border-t border-border-custom relative z-10 bg-background flex flex-col items-center justify-center"
+      className="min-h-screen w-full py-32 md:py-48 px-6 md:px-12 lg:px-24 relative z-10 bg-background flex flex-col items-center justify-center"
     >
       <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Column Label */}

@@ -19,7 +19,7 @@ export default function ContactSection() {
   return (
     <section
       id="contact"
-      className="min-h-screen w-full py-24 md:py-32 px-6 md:px-12 lg:px-24 border-t border-border-custom relative z-10 flex flex-col items-center justify-between bg-background"
+      className="min-h-screen w-full py-32 md:py-48 px-6 md:px-12 lg:px-24 relative z-10 flex flex-col items-center justify-between bg-background"
     >
       <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8 flex-1">
         {/* Left Column Label */}

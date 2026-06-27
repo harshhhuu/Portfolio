@@ -7,6 +7,7 @@ import Preloader from '@/components/Preloader';
 import CustomCursor from '@/components/CustomCursor';
 import Navbar from '@/components/Navbar';
 import { HorizonHero } from '@/components/ui/horizon-hero-section';
+import PunchlineSection from '@/components/PunchlineSection';
 import WorkSection from '@/components/WorkSection';
 import AboutSection from '@/components/AboutSection';
 import ContactSection from '@/components/ContactSection';
@@ -45,6 +46,7 @@ export default function Home() {
         }}
       >
         <HorizonHero />
+        <PunchlineSection />
         <WorkSection />
         <AboutSection />
         <ContactSection />
