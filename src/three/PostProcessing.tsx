@@ -4,6 +4,8 @@ import { Bloom, ChromaticAberration, EffectComposer, Vignette } from '@react-thr
 import { BlendFunction } from 'postprocessing';
 import { Vector2 } from 'three';
 
+const CHROMATIC_OFFSET = new Vector2(0.0005, 0.0005);
+
 export default function PostProcessing() {
   return (
     <EffectComposer multisampling={0}>
@@ -15,7 +17,7 @@ export default function PostProcessing() {
       />
       <ChromaticAberration
         blendFunction={BlendFunction.NORMAL}
-        offset={new Vector2(0.0005, 0.0005)}
+        offset={CHROMATIC_OFFSET}
         radialModulation={true}
         modulationOffset={0.5}
       />

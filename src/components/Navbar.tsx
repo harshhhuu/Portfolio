@@ -31,6 +31,7 @@ export default function Navbar() {
         <Magnetic range={40} actionStrength={0.25}>
           <Link
             href="/"
+            onClick={() => useScrollStore.getState().setCursor('default', '')}
             className="flex items-center gap-2 group cursor-pointer"
             onMouseEnter={() => useScrollStore.getState().setCursor('action', 'HOME', '#D4A574')}
             onMouseLeave={() => useScrollStore.getState().setCursor('default', '')}
@@ -65,6 +66,7 @@ export default function Navbar() {
                 <Magnetic key={item.href} range={35} actionStrength={0.3}>
                   <Link
                     href={item.href}
+                    onClick={() => useScrollStore.getState().setCursor('default', '')}
                     className={`font-mono text-xs tracking-wider uppercase transition-all duration-300 relative py-1 cursor-pointer ${
                       isActive ? 'text-accent' : 'text-textMuted hover:text-text'
                     }`}

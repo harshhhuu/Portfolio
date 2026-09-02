@@ -1,15 +1,22 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useScrollStore } from '@/store/useScrollStore';
 
 export default function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
   const cursorVariant = useScrollStore((s) => s.cursorVariant);
   const cursorLabel = useScrollStore((s) => s.cursorLabel);
   const cursorColor = useScrollStore((s) => s.cursorColor);
   const [isVisible, setIsVisible] = useState(false);
+
+  // Automatically reset cursor state whenever route/page changes
+  useEffect(() => {
+    useScrollStore.getState().setCursor('default', '');
+  }, [pathname]);
 
   useEffect(() => {
     // Only mount on desktop with cursor support

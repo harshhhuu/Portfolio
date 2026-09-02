@@ -45,7 +45,10 @@ export default function WorksHero() {
         );
     }, containerRef);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      useScrollStore.getState().setCursor('default', '');
+    };
   }, []);
 
   return (
@@ -102,6 +105,7 @@ export default function WorksHero() {
           {/* Interactive Back to Start Portal Button */}
           <Link
             href="/"
+            onClick={() => useScrollStore.getState().setCursor('default', '')}
             className="group/back inline-flex items-center gap-2.5 w-fit py-1 px-3 -ml-3 rounded-full border border-white/10 hover:border-accent/50 bg-white/[0.03] hover:bg-accent/[0.08] backdrop-blur-sm transition-all duration-300 cursor-pointer"
             onMouseEnter={() => useScrollStore.getState().setCursor('action', 'RETURN', '#00E5FF')}
             onMouseLeave={() => useScrollStore.getState().setCursor('default', '')}

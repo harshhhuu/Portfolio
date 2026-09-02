@@ -16,49 +16,69 @@ export default function Magnetic({ children, range = 50, actionStrength = 0.35 }
     const el = containerRef.current;
     if (!el) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    let rafId: number | null = null;
+    let latestEvent: MouseEvent | null = null;
+    let isSnappedBack = true; // Track state to avoid redundant gsap.to calls
+
+    const processMouseMove = () => {
+      rafId = null;
+      if (!latestEvent || !el) return;
+      const e = latestEvent;
+
       const rect = el.getBoundingClientRect();
       const elCenterX = rect.left + rect.width / 2;
       const elCenterY = rect.top + rect.height / 2;
-      
+
       const distanceX = e.clientX - elCenterX;
       const distanceY = e.clientY - elCenterY;
       const distance = Math.hypot(distanceX, distanceY);
 
       if (distance < range) {
-        // Smoothly pull toward the mouse cursor coordinates
+        isSnappedBack = false;
         gsap.to(el, {
           x: distanceX * actionStrength,
           y: distanceY * actionStrength,
           duration: 0.3,
-          ease: 'power2.out'
+          ease: 'power2.out',
         });
-      } else {
-        // Smoothly snap back to origin with spring elastic ease
+      } else if (!isSnappedBack) {
+        // Only snap back once — avoid firing elastic tween every frame when cursor is far away
+        isSnappedBack = true;
         gsap.to(el, {
           x: 0,
           y: 0,
           duration: 0.8,
-          ease: 'elastic.out(1, 0.3)'
+          ease: 'elastic.out(1, 0.3)',
         });
       }
     };
 
-    const handleMouseLeave = () => {
-      gsap.to(el, {
-        x: 0,
-        y: 0,
-        duration: 0.8,
-        ease: 'elastic.out(1, 0.3)'
-      });
+    const handleMouseMove = (e: MouseEvent) => {
+      latestEvent = e;
+      if (rafId === null) {
+        rafId = requestAnimationFrame(processMouseMove);
+      }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    const handleMouseLeave = () => {
+      if (!isSnappedBack) {
+        isSnappedBack = true;
+        gsap.to(el, {
+          x: 0,
+          y: 0,
+          duration: 0.8,
+          ease: 'elastic.out(1, 0.3)',
+        });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     el.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       el.removeEventListener('mouseleave', handleMouseLeave);
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, [range, actionStrength]);
 

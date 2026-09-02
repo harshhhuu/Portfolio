@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useMousePosition } from '@/hooks/useMousePosition';
 import { useGSAPScrollTrigger } from '@/hooks/useGSAPScrollTrigger';
 import Preloader from '@/components/Preloader';
@@ -12,9 +11,6 @@ import WorkSection from '@/components/WorkSection';
 import AboutSection from '@/components/AboutSection';
 import ContactSection from '@/components/ContactSection';
 import { useScrollStore } from '@/store/useScrollStore';
-
-// Dynamically import the 3D scene to bypass SSR window issues
-const Scene = dynamic(() => import('@/three/Scene'), { ssr: false });
 
 export default function Home() {
   // ─── Initialize Tracking Hooks ───
@@ -33,9 +29,6 @@ export default function Home() {
 
       {/* Header navbar links */}
       <Navbar />
-
-      {/* Background 3D Scene Layer (R3F) */}
-      <Scene />
 
       {/* Main Scrollable DOM Sections */}
       <main

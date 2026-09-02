@@ -10,16 +10,16 @@ interface WorksProjectCardProps {
   project: Project;
 }
 
+const PROJECT_NEGATIVE_COLORS: Record<string, string> = {
+  'pos-saas': '#00E5FF',     // Electric Cyan -> inverts to warm amber-gold negative
+  'access-ai': '#A855F7',    // Electric Violet -> inverts to vivid lime-emerald negative
+  'aura-ai': '#FF6D00',      // Vivid Amber -> inverts to deep crystal cyan negative
+};
+
 export default function WorksProjectCard({ project }: WorksProjectCardProps) {
   const cardRef = useRef<HTMLAnchorElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const setCursor = useScrollStore((s) => s.setCursor);
-
-  const PROJECT_NEGATIVE_COLORS: Record<string, string> = {
-    'pos-saas': '#00E5FF',     // Electric Cyan -> inverts to warm amber-gold negative
-    'access-ai': '#A855F7',    // Electric Violet -> inverts to vivid lime-emerald negative
-    'aura-ai': '#FF6D00',      // Vivid Amber -> inverts to deep crystal cyan negative
-  };
 
   const handleMouseEnter = () => {
     const color = PROJECT_NEGATIVE_COLORS[project.id] || '#cc0597';
