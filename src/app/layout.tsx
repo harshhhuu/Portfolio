@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Archivo, Space_Grotesk } from 'next/font/google';
+import { Archivo, Space_Grotesk, Playfair_Display, Cormorant_Garamond } from 'next/font/google';
 import './globals.css';
 
 const archivo = Archivo({
@@ -14,6 +14,22 @@ const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({
+  variable: '--font-serif',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: '--font-cormorant',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  style: ['normal', 'italic'],
   display: 'swap',
 });
 
@@ -44,7 +60,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${archivo.variable} ${spaceGrotesk.variable} ${playfair.variable} ${cormorant.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background text-foreground selection:bg-accent selection:text-white font-sans relative">
         <SmoothScroll>

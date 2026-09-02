@@ -96,12 +96,12 @@ export default function WorkSection() {
               <div
                 className="relative w-full h-full group overflow-hidden"
                 onMouseEnter={() => {
-                  useScrollStore.getState().setCursorVariant('project');
-                  useScrollStore.getState().setCursorLabel('VIEW');
+                  const colors = ['#00E5FF', '#A855F7', '#FF6D00', '#10B981', '#F43F5E'];
+                  const color = colors[idx % colors.length];
+                  useScrollStore.getState().setCursor('project', 'VIEW', color);
                 }}
                 onMouseLeave={() => {
-                  useScrollStore.getState().setCursorVariant('default');
-                  useScrollStore.getState().setCursorLabel('');
+                  useScrollStore.getState().setCursor('default', '');
                 }}
               >
                 {/* Subtle digital grid pattern overlay */}

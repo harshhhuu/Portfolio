@@ -3,6 +3,8 @@
 @theme {
   --font-sans: var(--font-space-grotesk), sans-serif;
   --font-display: var(--font-archivo), sans-serif;
+  --font-serif: var(--font-serif), Georgia, serif;
+  --font-cormorant: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
   --color-background: #0E0E12;
   --color-foreground: #EDE8E3;
   --color-accent: #D4A574;
@@ -124,4 +126,21 @@ html.lenis, html.lenis body {
 
 .lenis-scrolling iframe {
   pointer-events: none;
+}
+
+/* Works page — hide scrollbar on horizontal sliders */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Works card hover transition */
+.works-card {
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.works-card:hover {
+  transform: scale(1.01);
 }

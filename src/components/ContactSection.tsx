@@ -1,12 +1,14 @@
 'use client';
 
+import { useRef } from 'react';
 import SectionLabel from './SectionLabel';
 import { useScrollStore } from '@/store/useScrollStore';
 import { PERSONAL, SOCIALS } from '@/lib/constants';
 import Magnetic from './Magnetic';
 
 export default function ContactSection() {
-  const setCursorVariant = useScrollStore((s) => s.setCursorVariant);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const setCursor = useScrollStore((s) => s.setCursor);
 
   const handleScrollToTop = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -50,8 +52,8 @@ export default function ContactSection() {
                 <a
                   href={`mailto:${SOCIALS.email}`}
                   className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white hover:text-accent transition-colors duration-300 cursor-pointer"
-                  onMouseEnter={() => setCursorVariant('hover')}
-                  onMouseLeave={() => setCursorVariant('default')}
+                  onMouseEnter={() => setCursor('action', 'EMAIL', '#10B981')}
+                  onMouseLeave={() => setCursor('default', '')}
                 >
                   {SOCIALS.email}
                 </a>
@@ -69,8 +71,8 @@ export default function ContactSection() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-mono text-sm text-text hover:text-accent transition-colors duration-300 cursor-pointer"
-                    onMouseEnter={() => setCursorVariant('hover')}
-                    onMouseLeave={() => setCursorVariant('default')}
+                    onMouseEnter={() => setCursor('action', 'VISIT', '#00E5FF')}
+                    onMouseLeave={() => setCursor('default', '')}
                   >
                     linkedin.com/in/harsh-makwana-389137291
                   </a>
@@ -87,8 +89,8 @@ export default function ContactSection() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-mono text-sm text-text hover:text-accent transition-colors duration-300 cursor-pointer"
-                    onMouseEnter={() => setCursorVariant('hover')}
-                    onMouseLeave={() => setCursorVariant('default')}
+                    onMouseEnter={() => setCursor('action', 'CODE', '#A855F7')}
+                    onMouseLeave={() => setCursor('default', '')}
                   >
                     github.com/harshhhuu
                   </a>
@@ -111,8 +113,8 @@ export default function ContactSection() {
             <button
               onClick={handleScrollToTop}
               className="text-text hover:text-accent transition-colors duration-300 flex items-center gap-1.5 cursor-pointer"
-              onMouseEnter={() => setCursorVariant('hover')}
-              onMouseLeave={() => setCursorVariant('default')}
+              onMouseEnter={() => setCursor('action', 'TOP', '#FF6D00')}
+              onMouseLeave={() => setCursor('default', '')}
             >
               Back to Top
               <svg className="w-3.5 h-3.5 fill-none stroke-current" strokeWidth="2" viewBox="0 0 24 24">

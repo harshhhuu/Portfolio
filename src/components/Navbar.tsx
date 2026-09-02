@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useScrollStore } from '@/store/useScrollStore';
 import { NAV_ITEMS, PERSONAL, SOCIALS } from '@/lib/constants';
 import Magnetic from './Magnetic';
@@ -7,8 +9,14 @@ import Magnetic from './Magnetic';
 export default function Navbar() {
   const activeSection = useScrollStore((s) => s.activeSection);
   const setCursorVariant = useScrollStore((s) => s.setCursorVariant);
+  const pathname = usePathname();
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleScrollClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // Only handle scroll anchors when on the home page
+    if (pathname !== '/') {
+      // Navigate to home page with hash
+      return; // Let the Link handle it
+    }
     e.preventDefault();
     const target = document.querySelector(href);
     if (target) {
@@ -21,12 +29,11 @@ export default function Navbar() {
       <div className="flex items-center justify-between px-6 py-4 rounded-full border border-white/5 bg-black/40 backdrop-blur-md w-full max-w-7xl pointer-events-auto">
         {/* Monogram / Logo */}
         <Magnetic range={40} actionStrength={0.25}>
-          <a
-            href="#hero"
-            onClick={(e) => handleNavClick(e, '#hero')}
+          <Link
+            href="/"
             className="flex items-center gap-2 group cursor-pointer"
-            onMouseEnter={() => setCursorVariant('hover')}
-            onMouseLeave={() => setCursorVariant('default')}
+            onMouseEnter={() => useScrollStore.getState().setCursor('action', 'HOME', '#D4A574')}
+            onMouseLeave={() => useScrollStore.getState().setCursor('default', '')}
           >
             <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center font-display font-black text-sm text-white group-hover:scale-105 transition-transform duration-300">
               {PERSONAL.initials}
@@ -34,18 +41,57 @@ export default function Navbar() {
             <span className="font-mono text-xs tracking-widest text-text hidden sm:inline-block group-hover:text-accent transition-colors duration-300">
               {PERSONAL.name.toUpperCase()}
             </span>
-          </a>
+          </Link>
         </Magnetic>
 
         {/* Center Nav Items */}
         <nav className="flex items-center gap-4 md:gap-8">
           {NAV_ITEMS.map((item) => {
-            const isActive = activeSection === item.href.slice(1);
+            // Home button should only appear when we switch to some other page
+            if (item.href === '/' && pathname === '/') {
+              return null;
+            }
+
+            // Determine active state
+            const isRoute = item.type === 'route';
+            const isActive = isRoute
+              ? item.href === '/'
+                ? pathname === '/'
+                : pathname.startsWith(item.href)
+              : pathname === '/' && activeSection === item.href.slice(1);
+
+            if (isRoute) {
+              return (
+                <Magnetic key={item.href} range={35} actionStrength={0.3}>
+                  <Link
+                    href={item.href}
+                    className={`font-mono text-xs tracking-wider uppercase transition-all duration-300 relative py-1 cursor-pointer ${
+                      isActive ? 'text-accent' : 'text-textMuted hover:text-text'
+                    }`}
+                    onMouseEnter={() =>
+                      useScrollStore.getState().setCursor(
+                        'action',
+                        item.label.toUpperCase(),
+                        item.href === '/' ? '#D4A574' : '#00E5FF'
+                      )
+                    }
+                    onMouseLeave={() => useScrollStore.getState().setCursor('default', '')}
+                  >
+                    {item.label}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-accent rounded-full animate-pulse" />
+                    )}
+                  </Link>
+                </Magnetic>
+              );
+            }
+
+            // Scroll anchor items
             return (
               <Magnetic key={item.href} range={35} actionStrength={0.3}>
-                <a
-                  href={item.href}
-                  onClick={(e) => handleNavClick(e, item.href)}
+                <Link
+                  href={pathname === '/' ? item.href : `/${item.href}`}
+                  onClick={(e) => handleScrollClick(e, item.href)}
                   className={`font-mono text-xs tracking-wider uppercase transition-all duration-300 relative py-1 cursor-pointer ${
                     isActive ? 'text-accent' : 'text-textMuted hover:text-text'
                   }`}
@@ -56,7 +102,7 @@ export default function Navbar() {
                   {isActive && (
                     <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-accent rounded-full animate-pulse" />
                   )}
-                </a>
+                </Link>
               </Magnetic>
             );
           })}
@@ -68,8 +114,8 @@ export default function Navbar() {
             <a
               href={`mailto:${SOCIALS.email}`}
               className="font-mono text-[10px] tracking-widest uppercase border border-accent/40 px-4 py-2 rounded-full hover:bg-accent hover:text-white hover:border-accent transition-all duration-300 cursor-pointer"
-              onMouseEnter={() => setCursorVariant('hover')}
-              onMouseLeave={() => setCursorVariant('default')}
+              onMouseEnter={() => useScrollStore.getState().setCursor('action', 'HELLO', '#00E5FF')}
+              onMouseLeave={() => useScrollStore.getState().setCursor('default', '')}
             >
               Get In Touch
             </a>

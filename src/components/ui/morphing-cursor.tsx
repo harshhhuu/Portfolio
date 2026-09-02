@@ -33,7 +33,7 @@ export function UnifiedMagneticText({
 
   const mousePos = useRef({ x: 0, y: 0 })
   const currentPos = useRef({ x: 0, y: 0 })
-  const animationFrameRef = useRef<number>()
+  const animationFrameRef = useRef<number>(null)
 
   useEffect(() => {
     const updateSize = () => {

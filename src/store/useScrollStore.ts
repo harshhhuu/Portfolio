@@ -29,8 +29,9 @@ interface ScrollState {
   loadProgress: number;
 
   // ─── Cursor State ───
-  cursorVariant: 'default' | 'hover' | 'project' | 'hidden';
+  cursorVariant: 'default' | 'hover' | 'project' | 'action' | 'hidden';
   cursorLabel: string;
+  cursorColor: string;
 
   // ─── Setters (non-reactive, used by GSAP callbacks) ───
   setScrollProgress: (v: number) => void;
@@ -50,8 +51,10 @@ interface ScrollState {
   setMouse: (x: number, y: number) => void;
   setLoaded: (v: boolean) => void;
   setLoadProgress: (v: number) => void;
-  setCursorVariant: (v: 'default' | 'hover' | 'project' | 'hidden') => void;
+  setCursorVariant: (v: 'default' | 'hover' | 'project' | 'action' | 'hidden') => void;
   setCursorLabel: (v: string) => void;
+  setCursorColor: (c: string) => void;
+  setCursor: (variant: 'default' | 'hover' | 'project' | 'action' | 'hidden', label?: string, color?: string) => void;
 }
 
 export const useScrollStore = create<ScrollState>((set) => ({
@@ -78,6 +81,7 @@ export const useScrollStore = create<ScrollState>((set) => ({
 
   cursorVariant: 'default',
   cursorLabel: '',
+  cursorColor: '#cc0597',
 
   setScrollProgress: (v) => set({ scrollProgress: v }),
   setScrollVelocity: (v) => set({ scrollVelocity: v }),
@@ -99,4 +103,7 @@ export const useScrollStore = create<ScrollState>((set) => ({
   setLoadProgress: (v) => set({ loadProgress: v }),
   setCursorVariant: (v) => set({ cursorVariant: v }),
   setCursorLabel: (v) => set({ cursorLabel: v }),
+  setCursorColor: (c) => set({ cursorColor: c }),
+  setCursor: (variant, label = '', color = '#cc0597') =>
+    set({ cursorVariant: variant, cursorLabel: label, cursorColor: color }),
 }));

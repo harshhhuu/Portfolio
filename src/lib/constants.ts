@@ -86,9 +86,10 @@ export const OBJECT_CONFIGS: Record<SectionId, ObjectConfig> = {
 
 // ─── Navigation ──────────────────────────────────────────────────
 export const NAV_ITEMS = [
-  { label: 'Work', href: '#work' },
-  { label: 'About', href: '#about' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Home', href: '/', type: 'route' as const },
+  { label: 'Work', href: '/works', type: 'route' as const },
+  { label: 'About', href: '#about', type: 'scroll' as const },
+  { label: 'Contact', href: '#contact', type: 'scroll' as const },
 ] as const;
 
 // ─── Social Links ────────────────────────────────────────────────
