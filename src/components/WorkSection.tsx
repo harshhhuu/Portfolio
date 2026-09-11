@@ -1,46 +1,37 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { PROJECTS, HAS_MORE_PROJECTS } from '@/lib/projects';
+import { PROJECTS } from '@/lib/projects';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
+import { WaterRippleImage } from '@/components/ui/water-ripple-image';
 import { useScrollStore } from '@/store/useScrollStore';
+import Magnetic from '@/components/Magnetic';
 
 export default function WorkSection() {
+  const router = useRouter();
   const setTargetPosition = useScrollStore((s) => s.setTargetPosition);
   const setTargetScale = useScrollStore((s) => s.setTargetScale);
   const setMaterialTargets = useScrollStore((s) => s.setMaterialTargets);
 
   // Helper to update background WebGL 3D object state based on current active project index
   const update3DScene = (index: number) => {
-    const colors = ['#A8C5DA', '#B5C9A8', '#D4A574', '#D4A574'];
+    const colors = ['#A8C5DA', '#B5C9A8', '#D4A574'];
     const side = index % 2 === 0 ? 1 : -1;
 
-    if (index === 3) {
-      // Future release slot: center spinning wireframe
-      setTargetPosition([0, 0, -2.2]);
-      setTargetScale(0.5);
-      setMaterialTargets({
-        color: '#D4A574',
-        wireframe: true,
-        roughness: 0.15,
-        metalness: 0.1,
-        emissiveIntensity: 0.5,
-        transmission: 0,
-      });
-    } else {
-      setTargetPosition([1.8 * side, 0, -1]);
-      setTargetScale(0.65);
-      setMaterialTargets({
-        color: colors[index],
-        roughness: 0.25,
-        metalness: 0.85,
-        emissiveIntensity: 0.1,
-        wireframe: false,
-        transmission: 0,
-      });
-    }
+    setTargetPosition([1.8 * side, 0, -1]);
+    setTargetScale(0.65);
+    setMaterialTargets({
+      color: colors[index % colors.length],
+      roughness: 0.25,
+      metalness: 0.85,
+      emissiveIntensity: 0.1,
+      wireframe: false,
+      transmission: 0,
+    });
   };
 
   useEffect(() => {
@@ -67,6 +58,41 @@ export default function WorkSection() {
       triggers.push(trigger);
     });
 
+    // When scrolling down to the View All CTA, center the 3D wireframe object
+    const viewAllEl = document.querySelector('.view-all-cta');
+    if (viewAllEl) {
+      const trigger = ScrollTrigger.create({
+        trigger: viewAllEl,
+        start: 'top 75%',
+        end: 'bottom 25%',
+        onEnter: () => {
+          setTargetPosition([0, 0, -2]);
+          setTargetScale(0.55);
+          setMaterialTargets({
+            color: '#D4A574',
+            roughness: 0.15,
+            metalness: 0.5,
+            emissiveIntensity: 0.3,
+            wireframe: true,
+            transmission: 0.4,
+          });
+        },
+        onEnterBack: () => {
+          setTargetPosition([0, 0, -2]);
+          setTargetScale(0.55);
+          setMaterialTargets({
+            color: '#D4A574',
+            roughness: 0.15,
+            metalness: 0.5,
+            emissiveIntensity: 0.3,
+            wireframe: true,
+            transmission: 0.4,
+          });
+        },
+      });
+      triggers.push(trigger);
+    }
+
     return () => {
       triggers.forEach((t) => t.kill());
     };
@@ -76,13 +102,26 @@ export default function WorkSection() {
     <section id="work" className="w-full relative z-10 py-32 md:py-48 bg-transparent">
       
       {/* Section Introduction Header */}
-      <div className="max-w-5xl mx-auto px-6 md:px-12 flex flex-col gap-4 text-center mb-12">
-        <span className="font-mono text-xs text-accent uppercase tracking-widest font-bold">
-          01 / SELECTED WORK
-        </span>
-        <h2 className="text-4xl md:text-8xl font-medium font-sans uppercase tracking-tight text-text text-center">
-          Featured
-        </h2>
+      <div className="max-w-5xl mx-auto px-6 md:px-12 flex flex-col sm:flex-row items-center sm:items-end justify-between gap-6 mb-12">
+        <div className="flex flex-col gap-2 text-center sm:text-left">
+          <span className="font-mono text-xs text-accent uppercase tracking-widest font-bold">
+            01 / SELECTED WORK
+          </span>
+          <h2 className="text-4xl md:text-8xl font-medium font-sans uppercase tracking-tight text-text">
+            Featured
+          </h2>
+        </div>
+
+        <Link
+          href="/works"
+          onClick={() => useScrollStore.getState().setCursor('default', '')}
+          className="group inline-flex items-center gap-2 font-mono text-xs text-textMuted hover:text-accent tracking-widest uppercase transition-colors duration-300 pb-2 cursor-pointer"
+          onMouseEnter={() => useScrollStore.getState().setCursor('action', 'ALL', '#D4A574')}
+          onMouseLeave={() => useScrollStore.getState().setCursor('default', '')}
+        >
+          <span>View All ({PROJECTS.length})</span>
+          <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+        </Link>
       </div>
 
       {/* Projects vertical stack */}
@@ -94,7 +133,19 @@ export default function WorkSection() {
             <ContainerScroll>
               {/* Card content (16:9 IMAX visual frame) */}
               <div
-                className="relative w-full h-full group overflow-hidden"
+                role="link"
+                tabIndex={0}
+                className="relative w-full h-full group overflow-hidden cursor-pointer"
+                onClick={() => {
+                  useScrollStore.getState().setCursor('default', '');
+                  router.push(`/works/${project.slug}`);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    useScrollStore.getState().setCursor('default', '');
+                    router.push(`/works/${project.slug}`);
+                  }
+                }}
                 onMouseEnter={() => {
                   const colors = ['#00E5FF', '#A855F7', '#FF6D00', '#10B981', '#F43F5E'];
                   const color = colors[idx % colors.length];
@@ -111,12 +162,14 @@ export default function WorkSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/35 z-10 pointer-events-none" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent z-10 pointer-events-none" />
 
-                {/* Project visual graphic */}
-                <img
+                {/* Project visual — Water Ripple WebGL shader effect */}
+                <WaterRippleImage
                   src={project.image}
-                  alt={project.title}
-                  className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-1000 ease-out group-hover:scale-105"
-                  draggable={false}
+                  blueish={0.4}
+                  scale={7}
+                  illumination={0.15}
+                  surfaceDistortion={0.03}
+                  waterDistortion={0.02}
                 />
 
                 {/* Overlay: Index (Top-Left) */}
@@ -154,6 +207,7 @@ export default function WorkSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[10px] md:text-xs font-mono text-textMuted hover:text-text transition-colors duration-300 flex items-center gap-1.5 cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
                         onMouseEnter={() => useScrollStore.getState().setCursorVariant('hover')}
                         onMouseLeave={() => useScrollStore.getState().setCursorVariant('project')}
                       >
@@ -169,6 +223,7 @@ export default function WorkSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[10px] md:text-xs font-mono text-textMuted hover:text-text transition-colors duration-300 flex items-center gap-1.5 cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
                         onMouseEnter={() => useScrollStore.getState().setCursorVariant('hover')}
                         onMouseLeave={() => useScrollStore.getState().setCursorVariant('project')}
                       >
@@ -195,52 +250,47 @@ export default function WorkSection() {
             </ContainerScroll>
           </div>
         ))}
-
-        {/* Cinematic credit roll ending slide */}
-        {HAS_MORE_PROJECTS && (
-          <div className="project-container w-full flex items-center justify-center relative">
-            <ContainerScroll>
-              {/* Virtual black box representing future work */}
-              <div className="w-full h-full bg-zinc-950 flex items-center justify-center relative select-none overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(#252228_1px,transparent_1px)] [background-size:16px_16px] opacity-20 z-10 pointer-events-none" />
-                <div className="w-[150%] h-[150%] bg-[radial-gradient(circle_at_center,rgba(212,165,116,0.05)_0%,transparent_60%)] animate-pulse" />
-                
-                {/* Overlay: Index (Top-Left) */}
-                <div className="absolute top-6 left-6 md:top-8 md:left-8 z-20 font-mono text-xs md:text-sm text-textMuted font-bold tracking-widest">
-                  04
-                </div>
-
-                {/* Overlay: Title & Tech Tags (Bottom-Left) */}
-                <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 z-20 flex flex-col gap-4 max-w-[60%] text-left">
-                  <h3 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-medium font-sans italic tracking-wide text-textMuted drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] leading-tight">
-                    Coming Soon
-                  </h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {['WebGL', 'AI Agents', 'Rust / WASM', 'Network Protocols'].map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-[8px] md:text-[9px] font-mono tracking-wider bg-black/40 border border-white/10 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full text-textMuted uppercase backdrop-blur-sm"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Overlay: Description & Links (Bottom-Right) */}
-                <div className="absolute bottom-6 right-6 md:bottom-8 md:right-8 z-20 flex flex-col gap-3 md:gap-4 max-w-[35%] text-right items-end">
-                  <p className="text-[10px] md:text-xs lg:text-sm text-textMuted leading-relaxed font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] hidden sm:block">
-                    Currently designing custom WebGL shaders and multi-agent LLM orchestrators.
-                  </p>
-                  <div className="font-mono text-[9px] text-accent tracking-widest uppercase">
-                    STATUS // IN_PRODUCTION
-                  </div>
-                </div>
-              </div>
-            </ContainerScroll>
-          </div>
-        )}
       </div>
+
+      {/* View All Works CTA — dedicated, spacious closing section */}
+      <div className="view-all-cta w-full min-h-[60vh] md:min-h-[75vh] flex flex-col items-center justify-center text-center relative z-20 px-6 py-24 md:py-36">
+        <Magnetic range={80} actionStrength={0.25}>
+          <Link
+            href="/works"
+            onClick={() => useScrollStore.getState().setCursor('default', '')}
+            className="group relative inline-flex items-center gap-4 md:gap-6 py-4 md:py-5 px-8 md:px-12 rounded-full border border-white/15 hover:border-accent/60 bg-white/[0.03] hover:bg-accent/[0.08] backdrop-blur-md transition-all duration-300 cursor-pointer shadow-[0_0_50px_rgba(0,0,0,0.5)] hover:shadow-[0_0_60px_rgba(212,165,116,0.2)]"
+            onMouseEnter={() => useScrollStore.getState().setCursor('action', 'EXPLORE', '#D4A574')}
+            onMouseLeave={() => useScrollStore.getState().setCursor('default', '')}
+          >
+            {/* Ambient hover glow */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/0 via-accent/15 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md pointer-events-none" />
+
+            <span className="font-mono text-xs md:text-sm font-semibold tracking-[0.2em] uppercase text-text/90 group-hover:text-white transition-colors duration-300">
+              View All Works
+            </span>
+
+            {/* Magnetic arrow circle */}
+            <span className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-white/10 group-hover:border-accent/40 group-hover:bg-accent flex items-center justify-center transition-all duration-300 group-hover:translate-x-1.5 shadow-sm">
+              <svg
+                className="w-3.5 h-3.5 md:w-4 md:h-4 text-text group-hover:text-black transition-colors duration-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </span>
+          </Link>
+        </Magnetic>
+
+        <p className="mt-5 font-mono text-[10px] md:text-xs text-textMuted/50 tracking-[0.2em] uppercase">
+          All Case Studies, Architecture & Prototypes
+        </p>
+      </div>
+
+      {/* Smooth gradient fade into About section */}
+      <div className="absolute bottom-0 left-0 right-0 h-40 md:h-56 bg-gradient-to-b from-transparent to-background pointer-events-none z-10" />
 
     </section>
   );
