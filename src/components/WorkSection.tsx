@@ -254,38 +254,51 @@ export default function WorkSection() {
 
       {/* View All Works CTA — dedicated, spacious closing section */}
       <div className="view-all-cta w-full min-h-[60vh] md:min-h-[75vh] flex flex-col items-center justify-center text-center relative z-20 px-6 py-24 md:py-36">
-        <Magnetic range={80} actionStrength={0.25}>
+        <Magnetic range={90} actionStrength={0.3}>
           <Link
             href="/works"
             onClick={() => useScrollStore.getState().setCursor('default', '')}
-            className="group relative inline-flex items-center gap-4 md:gap-6 py-4 md:py-5 px-8 md:px-12 rounded-full border border-white/15 hover:border-accent/60 bg-white/[0.03] hover:bg-accent/[0.08] backdrop-blur-md transition-all duration-300 cursor-pointer shadow-[0_0_50px_rgba(0,0,0,0.5)] hover:shadow-[0_0_60px_rgba(212,165,116,0.2)]"
+            className="group relative inline-flex flex-col items-center cursor-pointer select-none py-4 px-8"
             onMouseEnter={() => useScrollStore.getState().setCursor('action', 'EXPLORE', '#D4A574')}
             onMouseLeave={() => useScrollStore.getState().setCursor('default', '')}
           >
-            {/* Ambient hover glow */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/0 via-accent/15 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md pointer-events-none" />
+            {/* Dynamic Royal Italic Typography + Kinetic Arrow */}
+            <div
+              className="flex items-center gap-3 sm:gap-5 text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-normal italic tracking-tight"
+              style={{
+                fontFamily: "var(--font-cormorant), 'Cormorant Garamond', 'Playfair Display', Georgia, serif",
+              }}
+            >
+              {/* Dual-layer rolling royal italic text */}
+              <span className="relative overflow-hidden inline-block h-[1.22em] leading-[1.22] pb-1">
+                <span className="block text-[#EDE8E3]/90 transition-transform duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-full">
+                  View All Works
+                </span>
+                <span className="absolute top-full inset-x-0 text-center block text-accent transition-transform duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-full drop-shadow-[0_0_30px_rgba(212,165,116,0.7)] whitespace-nowrap">
+                  Ayee!
+                </span>
+              </span>
 
-            <span className="font-mono text-xs md:text-sm font-semibold tracking-[0.2em] uppercase text-text/90 group-hover:text-white transition-colors duration-300">
-              View All Works
-            </span>
+              {/* Kinetic Diagonal Flying Arrow */}
+              <span className="relative overflow-hidden inline-block w-[0.75em] h-[0.75em] text-textMuted/60 group-hover:text-accent transition-colors duration-400 not-italic">
+                <span className="block transition-transform duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full group-hover:-translate-y-full">
+                  ↗
+                </span>
+                <span className="absolute inset-0 block -translate-x-full translate-y-full transition-transform duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0 group-hover:translate-y-0 text-accent">
+                  ↗
+                </span>
+              </span>
+            </div>
 
-            {/* Magnetic arrow circle */}
-            <span className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-white/10 group-hover:border-accent/40 group-hover:bg-accent flex items-center justify-center transition-all duration-300 group-hover:translate-x-1.5 shadow-sm">
-              <svg
-                className="w-3.5 h-3.5 md:w-4 md:h-4 text-text group-hover:text-black transition-colors duration-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </span>
+            {/* Dynamic Expanding Underline Accent */}
+            <div className="w-full mt-2 h-[1.5px] bg-white/10 relative overflow-hidden rounded-full">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent to-transparent transition-transform duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] origin-center scale-x-0 group-hover:scale-x-100" />
+            </div>
           </Link>
         </Magnetic>
 
-        <p className="mt-5 font-mono text-[10px] md:text-xs text-textMuted/50 tracking-[0.2em] uppercase">
-          All Case Studies, Architecture & Prototypes
+        <p className="mt-6 font-mono text-[10px] md:text-xs text-textMuted/45 tracking-[0.22em] uppercase">
+          All Case Studies, Architecture & Prototypes ({PROJECTS.length})
         </p>
       </div>
 
