@@ -251,8 +251,8 @@ export default function WaterRippleImage({
 
     loadImage(src);
 
-    // sizing
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // sizing (capped at 1.5 DPR — the 10-iteration surface_noise loop is the GPU bottleneck, not pixel clarity)
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     const resize = () => {
       const w = Math.floor(container.clientWidth * dpr);
@@ -272,8 +272,21 @@ export default function WaterRippleImage({
     ro.observe(container);
     resize();
 
+    // Visibility gating — pause the render loop when off-screen to save GPU cycles.
+    // IntersectionObserver fires immediately when the element re-enters the viewport,
+    // so it reactivates seamlessly when navigating back to the home page.
+    let isVisible = true;
+    const io = new IntersectionObserver(
+      ([entry]) => { isVisible = entry.isIntersecting; },
+      { threshold: 0 }
+    );
+    io.observe(container);
+
     // render loop
     const render = () => {
+      animRef.current = requestAnimationFrame(render);
+      if (!isVisible) return; // Skip GPU work when off-screen
+
       // sync params every frame (cheap float writes)
       const cp = paramsRef.current;
       gl.uniform1f(u['u_blueish'], cp.blueish);
@@ -284,11 +297,11 @@ export default function WaterRippleImage({
 
       gl.uniform1f(u['u_time'], performance.now());
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      animRef.current = requestAnimationFrame(render);
     };
     animRef.current = requestAnimationFrame(render);
 
     return () => {
+      io.disconnect();
       ro.disconnect();
       if (animRef.current) cancelAnimationFrame(animRef.current);
       if (texRef.current) gl.deleteTexture(texRef.current);

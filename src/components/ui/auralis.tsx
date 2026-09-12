@@ -155,21 +155,33 @@ const Auralis = ({
     const ro = new ResizeObserver(resize);
     ro.observe(container);
 
+    // Visibility gating — pause the render loop when off-screen to save GPU cycles
+    let isVisible = true;
+    const io = new IntersectionObserver(
+      ([entry]) => { isVisible = entry.isIntersecting; },
+      { threshold: 0 }
+    );
+    io.observe(container);
+
+    // Pre-allocate colors array outside render loop (avoids Float32Array alloc every frame)
+    const colorsFlat = new Float32Array(colors.slice(0, 3).flatMap(hexToRgb));
+
     let raf: number;
     const render = (t: number) => {
+      raf = requestAnimationFrame(render);
+      if (!isVisible) return; // Skip GPU work when off-screen
+
       gl.uniform2f(locs.res, canvas.width, canvas.height);
       gl.uniform1f(locs.time, t * 0.001 * speed);
       gl.uniform1f(locs.grain, grain);
-
-      const flat = new Float32Array(colors.slice(0, 3).flatMap(hexToRgb));
-      gl.uniform3fv(locs.colors, flat);
+      gl.uniform3fv(locs.colors, colorsFlat);
 
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      raf = requestAnimationFrame(render);
     };
 
     raf = requestAnimationFrame(render);
     return () => {
+      io.disconnect();
       ro.disconnect();
       cancelAnimationFrame(raf);
       gl.deleteProgram(program);

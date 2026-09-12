@@ -46,8 +46,8 @@ export const HorizonHero = () => {
   const prevTime = useRef(Date.now());
   const prevSection = useRef(0);
   
-  const [scrollProgress, setScrollProgressState] = useState(0);
-  const [currentSection, setCurrentSection] = useState(0);
+  const scrollProgressValue = useRef(0);
+  const currentSectionValue = useRef(0);
   const [isReady, setIsReady] = useState(false);
   const totalSections = 3;
 
@@ -123,7 +123,7 @@ export const HorizonHero = () => {
     setIsReady(true);
 
     function createStarField() {
-      const starCount = 2000;
+      const starCount = 1200;
       
       for (let i = 0; i < 3; i++) {
         const geometry = new THREE.BufferGeometry();
@@ -211,7 +211,7 @@ export const HorizonHero = () => {
     }
 
     function createNebula() {
-      const geometry = new THREE.PlaneGeometry(6000, 3000, 80, 80);
+      const geometry = new THREE.PlaneGeometry(6000, 3000, 40, 40);
       const material = new THREE.ShaderMaterial({
         uniforms: {
           time: { value: 0 },
@@ -317,14 +317,18 @@ export const HorizonHero = () => {
       refs.locations = locations;
     }
 
-    // Handle resize
+    // Handle resize (debounced to prevent resize-storm during window dragging)
+    let resizeTimer: ReturnType<typeof setTimeout>;
     const handleResize = () => {
-      if (refs.camera && refs.renderer && refs.composer) {
-        refs.camera.aspect = window.innerWidth / window.innerHeight;
-        refs.camera.updateProjectionMatrix();
-        refs.renderer.setSize(window.innerWidth, window.innerHeight);
-        refs.composer.setSize(window.innerWidth, window.innerHeight);
-      }
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (refs.camera && refs.renderer && refs.composer) {
+          refs.camera.aspect = window.innerWidth / window.innerHeight;
+          refs.camera.updateProjectionMatrix();
+          refs.renderer.setSize(window.innerWidth, window.innerHeight);
+          refs.composer.setSize(window.innerWidth, window.innerHeight);
+        }
+      }, 150);
     };
 
     window.addEventListener('resize', handleResize);
@@ -334,6 +338,7 @@ export const HorizonHero = () => {
       if (refs.animationId) {
         cancelAnimationFrame(refs.animationId);
       }
+      clearTimeout(resizeTimer);
 
       window.removeEventListener('resize', handleResize);
 
@@ -418,6 +423,19 @@ export const HorizonHero = () => {
     headBinormal: new THREE.Vector3()
   });
 
+  // Pre-allocated Color objects to avoid GC pressure in the comet particle loop
+  // (eliminates ~96K allocations/sec at 60fps)
+  const cometColors = useRef({
+    c1: new THREE.Color(),
+    c2: new THREE.Color(),
+    c1Start: new THREE.Color(0xFFF8EE),
+    c1Mid: new THREE.Color(0xE8C9A0),
+    c1End: new THREE.Color(0xB8896A),
+    c2Start: new THREE.Color(0xFFF8EE),
+    c2Mid: new THREE.Color(0xC9A0A0),
+    c2End: new THREE.Color(0x8A7080),
+  });
+
   const createComet = () => {
     const refs = threeRefs.current;
     if (!refs.scene) return;
@@ -456,6 +474,7 @@ export const HorizonHero = () => {
     cometGroup.add(innerCore);
 
     refs.scene.add(cometGroup);
+    cometGroup.frustumCulled = false;
     cometMeshRef.current = cometGroup;
 
     // Comet light casting warm golden halos
@@ -518,6 +537,10 @@ export const HorizonHero = () => {
     });
 
     const particles = new THREE.Points(pGeom, pMat);
+    // Disable frustum culling — particle positions are updated via buffer each frame
+    // but Three.js never recomputes the bounding sphere from all-zero initial positions,
+    // causing the entire Points object to vanish when camera parallax shifts the frustum.
+    particles.frustumCulled = false;
     refs.scene.add(particles);
     cometParticlesRef.current = particles;
   };
@@ -530,7 +553,10 @@ export const HorizonHero = () => {
     const delta = (now - prevTime.current) * 0.001;
     prevTime.current = now;
 
-    const storeVelocity = useScrollStore.getState().scrollVelocity;
+    // Single Zustand read per frame (batched)
+    const store = useScrollStore.getState();
+
+    const storeVelocity = store.scrollVelocity;
     smoothVelocity.current += (storeVelocity - smoothVelocity.current) * 0.1;
 
     // Time accelerates significantly based on scroll velocity for WebGL reaction
@@ -553,8 +579,8 @@ export const HorizonHero = () => {
     if (refs.camera && refs.targetCameraZ !== undefined) {
       const smoothingFactor = 0.04;
       
-      const mouseX = useScrollStore.getState().mouseX;
-      const mouseY = useScrollStore.getState().mouseY;
+      const mouseX = store.mouseX;
+      const mouseY = store.mouseY;
       
       // Calculate smooth translation
       smoothCameraPos.current.x += (refs.targetCameraX - smoothCameraPos.current.x) * smoothingFactor;
@@ -583,7 +609,7 @@ export const HorizonHero = () => {
 
     // Update Comet Flight along the scroll progress path
     if (cometMeshRef.current && cometLightRef.current && cometParticlesRef.current) {
-      const currentScroll = useScrollStore.getState().scrollProgress;
+      const currentScroll = store.scrollProgress;
       
       // Smoothly ease the scroll progress for inertia (makes it glide beautifully)
       smoothScrollProgress.current += (currentScroll - smoothScrollProgress.current) * 0.05;
@@ -633,9 +659,15 @@ export const HorizonHero = () => {
       m.headPos.addScaledVector(m.headBinormal, headWaveY);
 
       // Calculate distance to camera to prevent close-up camera clipping / screen-blocking
+      // Uses the base scroll-driven camera position (without mouse parallax) so that
+      // moving the cursor doesn't abruptly trigger the proximity fade
       let headScale = 1.0;
       if (refs.camera) {
-        const distToCamera = m.headPos.distanceTo(refs.camera.position);
+        const scp = smoothCameraPos.current;
+        const dx = m.headPos.x - scp.x;
+        const dy = m.headPos.y - scp.y;
+        const dz = m.headPos.z - scp.z;
+        const distToCamera = Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (distToCamera < 130) {
           headScale = Math.max(0.0, (distToCamera - 25) / 105);
         }
@@ -704,18 +736,16 @@ export const HorizonHero = () => {
         positions[idx1 * 3 + 1] = m.pos.y + m.offset1.y + m.waveOffset.y;
         positions[idx1 * 3 + 2] = m.pos.z + m.offset1.z + m.waveOffset.z;
 
-        // Color transition: warm cream -> golden sand -> warm clay
-        const c1 = new THREE.Color();
+        // Color transition: warm cream -> golden sand -> warm clay (using pre-allocated Color)
+        const cc = cometColors.current;
         if (t < 0.15) {
-          const mixFactor = t / 0.15;
-          c1.lerpColors(new THREE.Color(0xFFF8EE), new THREE.Color(0xE8C9A0), mixFactor);
+          cc.c1.lerpColors(cc.c1Start, cc.c1Mid, t / 0.15);
         } else {
-          const mixFactor = (t - 0.15) / 0.85;
-          c1.lerpColors(new THREE.Color(0xE8C9A0), new THREE.Color(0xB8896A), mixFactor);
+          cc.c1.lerpColors(cc.c1Mid, cc.c1End, (t - 0.15) / 0.85);
         }
-        colors[idx1 * 3] = c1.r;
-        colors[idx1 * 3 + 1] = c1.g;
-        colors[idx1 * 3 + 2] = c1.b;
+        colors[idx1 * 3] = cc.c1.r;
+        colors[idx1 * 3 + 1] = cc.c1.g;
+        colors[idx1 * 3 + 2] = cc.c1.b;
 
         // Enhanced sizes for a bold, non-sparkly look, swelling on scroll
         sizes[idx1] = 26.0 * Math.pow(1.0 - t, 0.5) * (0.8 + 0.2 * Math.random()) * (1.0 + velocityStretch * 3.0);
@@ -738,18 +768,15 @@ export const HorizonHero = () => {
         positions[idx2 * 3 + 1] = m.pos.y + m.offset2.y + m.waveOffset.y;
         positions[idx2 * 3 + 2] = m.pos.z + m.offset2.z + m.waveOffset.z;
 
-        // Color transition: warm cream -> dusty rose -> muted mauve
-        const c2 = new THREE.Color();
+        // Color transition: warm cream -> dusty rose -> muted mauve (using pre-allocated Color)
         if (t < 0.15) {
-          const mixFactor = t / 0.15;
-          c2.lerpColors(new THREE.Color(0xFFF8EE), new THREE.Color(0xC9A0A0), mixFactor);
+          cc.c2.lerpColors(cc.c2Start, cc.c2Mid, t / 0.15);
         } else {
-          const mixFactor = (t - 0.15) / 0.85;
-          c2.lerpColors(new THREE.Color(0xC9A0A0), new THREE.Color(0x8A7080), mixFactor);
+          cc.c2.lerpColors(cc.c2Mid, cc.c2End, (t - 0.15) / 0.85);
         }
-        colors[idx2 * 3] = c2.r;
-        colors[idx2 * 3 + 1] = c2.g;
-        colors[idx2 * 3 + 2] = c2.b;
+        colors[idx2 * 3] = cc.c2.r;
+        colors[idx2 * 3 + 1] = cc.c2.g;
+        colors[idx2 * 3 + 2] = cc.c2.b;
 
         sizes[idx2] = 20.0 * Math.pow(1.0 - t, 0.6) * (0.8 + 0.2 * Math.random()) * (1.0 + velocityStretch * 3.0);
       }
@@ -775,7 +802,10 @@ export const HorizonHero = () => {
       const maxScroll = documentHeight - windowHeight || 1;
       const progress = Math.min(scrollY / maxScroll, 1);
       
-      setScrollProgressState(progress);
+      // Update via ref + direct DOM (avoids React re-render on every scroll tick)
+      scrollProgressValue.current = progress;
+      const progressBar = scrollProgressRef.current?.querySelector('.progress-bar-fill') as HTMLElement;
+      if (progressBar) progressBar.style.width = `${progress * 100}%`;
       
       // Calculate sections
       const totalProgress = progress * totalSections;
@@ -803,7 +833,7 @@ export const HorizonHero = () => {
         }
       }
       
-      setCurrentSection(currentSec);
+      currentSectionValue.current = currentSec;
 
       const refs = threeRefs.current;
       const sectionProgress = totalProgress % 1;
@@ -965,8 +995,8 @@ export const HorizonHero = () => {
         <span className="tracking-widest uppercase">SCROLL TO EXPLORE</span>
         <div className="flex-1 mx-8 h-[1px] bg-white/10 relative overflow-hidden hidden sm:block">
           <div 
-            className="absolute left-0 top-0 bottom-0 bg-accent transition-all duration-75" 
-            style={{ width: `${scrollProgress * 100}%` }}
+            className="progress-bar-fill absolute left-0 top-0 bottom-0 bg-accent transition-all duration-75" 
+            style={{ width: '0%' }}
           />
         </div>
         <div ref={sectionLabelRef} className="tracking-widest">
